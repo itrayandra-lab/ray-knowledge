@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+
+# build / cache
+.ruff_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.tmp
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# logs
+*.log
+npm-debug.log*
+
+# env
+.env
+.env.*
+
+# lokal & server runtime
+_runtime/ tests_output/
+
+# dokumentasi (sumber PPT + extract, tidak di-push)
+dokumentasi/
+
+# debug scripts
+_test_runtime*.js
