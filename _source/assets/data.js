@@ -17,7 +17,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 26,
    "productCount": 7,
    "gapCount": 0,
-   "image": "/assets/brands/phytosync.jpeg",
+   "image": "/assets/brands/phytosync.webp",
    "profiles": [
     {
      "name": "PHYTOSYNC",
@@ -785,7 +785,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 21,
    "productCount": 8,
    "gapCount": 2,
-   "image": "/assets/brands/beautylatory.jpeg",
+   "image": "/assets/brands/beautylatory.webp",
    "profiles": [
     {
      "name": "BEAUTYLATORY",
@@ -1624,7 +1624,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 21,
    "productCount": 4,
    "gapCount": 2,
-   "image": "/assets/brands/mommylatory.jpeg",
+   "image": "/assets/brands/mommylatory.webp",
    "profiles": [
     {
      "name": "MOMMYLATORY",
@@ -1653,7 +1653,7 @@ window.RAY_KNOWLEDGE = {
       {
        "name": "Dr. dr. Akhmad Yogi Pramatirta, Sp.OG (K), M.Kes.",
        "role": "Dokter Spesialis Kebidanan & Kandungan",
-       "image": "/assets/collaborators/mommylatory-yogi.jpg"
+       "image": "/assets/collaborators/mommylatory-yogi.webp"
       }
      ]
     }
@@ -1716,7 +1716,7 @@ window.RAY_KNOWLEDGE = {
      {
       "name": "Dr. dr. Akhmad Yogi Pramatirta, Sp.OG (K), M.Kes.",
       "role": "Dokter Spesialis Kebidanan & Kandungan",
-      "image": "/assets/collaborators/mommylatory-yogi.jpg"
+      "image": "/assets/collaborators/mommylatory-yogi.webp"
      }
     ]
    },
@@ -2106,7 +2106,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 6,
    "productCount": 2,
    "gapCount": 2,
-   "image": "/assets/brands/baby-latory.jpeg",
+   "image": "/assets/brands/baby-latory.webp",
    "profiles": [
     {
      "name": "BABY-LATORY",
@@ -2135,7 +2135,7 @@ window.RAY_KNOWLEDGE = {
       {
        "name": "dr. Frecillia Regina, Sp.A, IBCLC",
        "role": "Dokter Spesialis Anak & Konselor Laktasi",
-       "image": "/assets/collaborators/baby-frecillia.jpg"
+       "image": "/assets/collaborators/baby-frecillia.webp"
       }
      ]
     }
@@ -2198,7 +2198,7 @@ window.RAY_KNOWLEDGE = {
      {
       "name": "dr. Frecillia Regina, Sp.A, IBCLC",
       "role": "Dokter Spesialis Anak & Konselor Laktasi",
-      "image": "/assets/collaborators/baby-frecillia.jpg"
+      "image": "/assets/collaborators/baby-frecillia.webp"
      }
     ]
    },
@@ -2404,7 +2404,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 6,
    "productCount": 9,
    "gapCount": 1,
-   "image": "/assets/brands/sam-sun-and-moon.jpeg",
+   "image": "/assets/brands/sam-sun-and-moon.webp",
    "profiles": [
     {
      "name": "SAM Sun and Moon",
@@ -2433,7 +2433,7 @@ window.RAY_KNOWLEDGE = {
       {
        "name": "dr. Frecillia Regina, Sp.A, IBCLC",
        "role": "Dokter Spesialis Anak & Konselor Laktasi",
-       "image": "/assets/collaborators/sam-frecillia.jpg"
+       "image": "/assets/collaborators/sam-frecillia.webp"
       }
      ]
     }
@@ -2496,7 +2496,7 @@ window.RAY_KNOWLEDGE = {
      {
       "name": "dr. Frecillia Regina, Sp.A, IBCLC",
       "role": "Dokter Spesialis Anak & Konselor Laktasi",
-      "image": "/assets/collaborators/sam-frecillia.jpg"
+      "image": "/assets/collaborators/sam-frecillia.webp"
      }
     ]
    },
@@ -3354,7 +3354,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 7,
    "productCount": 6,
    "gapCount": 2,
-   "image": "/assets/brands/volubilis.jpeg",
+   "image": "/assets/brands/volubilis.webp",
    "profiles": [
     {
      "name": "VOLUBILIS Vomega",
@@ -4034,7 +4034,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 12,
    "productCount": 0,
    "gapCount": 1,
-   "image": "/assets/brands/dermalink.jpeg",
+   "image": "/assets/brands/dermalink.webp",
    "profiles": [
     {
      "name": "DERMALINK",
@@ -4059,7 +4059,7 @@ window.RAY_KNOWLEDGE = {
       {
        "name": "dr. Novy Oktaviana, Sp.DVE",
        "role": "Dokter Spesialis Kulit & Kelamin",
-       "image": "/assets/collaborators/dermalink-novy.jpg"
+       "image": "/assets/collaborators/dermalink-novy.webp"
       }
      ]
     }
@@ -4118,7 +4118,7 @@ window.RAY_KNOWLEDGE = {
      {
       "name": "dr. Novy Oktaviana, Sp.DVE",
       "role": "Dokter Spesialis Kulit & Kelamin",
-      "image": "/assets/collaborators/dermalink-novy.jpg"
+      "image": "/assets/collaborators/dermalink-novy.webp"
      }
     ]
    },
@@ -4136,7 +4136,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 17,
    "productCount": 5,
    "gapCount": 1,
-   "image": "/assets/brands/dermond.jpeg",
+   "image": "/assets/brands/dermond.webp",
    "profiles": [
     {
      "name": "DERMOND",
@@ -4716,7 +4716,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 6,
    "productCount": 4,
    "gapCount": 4,
-   "image": "/assets/brands/luecielliderm.jpeg",
+   "image": "/assets/brands/luecielliderm.webp",
    "profiles": [
     {
      "name": "LUECIELLEDERM",
@@ -5199,7 +5199,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 6,
    "productCount": 3,
    "gapCount": 5,
-   "image": "/assets/brands/eggshellent.jpeg",
+   "image": "/assets/brands/eggshellent.webp",
    "profiles": [
     {
      "name": "EGGSHELLENT",
@@ -5581,7 +5581,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 7,
    "productCount": 0,
    "gapCount": 10,
-   "image": "/assets/brands/alpha-shield.jpeg",
+   "image": "/assets/brands/alpha-shield.webp",
    "profiles": [
     {
      "name": "ALPHA SHIELD",
@@ -5683,7 +5683,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 4,
    "productCount": 1,
    "gapCount": 4,
-   "image": "/assets/brands/anara.jpeg",
+   "image": "/assets/brands/anara.webp",
    "profiles": [
     {
      "name": "ANARA",
@@ -5888,7 +5888,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 4,
    "productCount": 1,
    "gapCount": 2,
-   "image": "/assets/brands/pangasia.jpeg",
+   "image": "/assets/brands/pangasia.webp",
    "profiles": [
     {
      "name": "PANGASIA",
@@ -6092,7 +6092,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 10,
    "productCount": 1,
    "gapCount": 5,
-   "image": "/assets/brands/coralyst.jpeg",
+   "image": "/assets/brands/coralyst.webp",
    "profiles": [
     {
      "name": "CORALYST",
@@ -6284,7 +6284,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 11,
    "productCount": 5,
    "gapCount": 2,
-   "image": "/assets/brands/upglow-dai.jpeg",
+   "image": "/assets/brands/upglow-dai.webp",
    "profiles": [
     {
      "name": "UPGLOW DIA Series",
@@ -6858,7 +6858,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 9,
    "productCount": 2,
    "gapCount": 4,
-   "image": "/assets/brands/beautynature.jpeg",
+   "image": "/assets/brands/beautynature.webp",
    "profiles": [
     {
      "name": "BEAUTYNATURE",
@@ -7143,7 +7143,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 28,
    "productCount": 7,
    "gapCount": 1,
-   "image": "/assets/brands/adhwa.jpeg",
+   "image": "/assets/brands/adhwa.webp",
    "profiles": [
     {
      "name": "ADHWA",
@@ -7866,7 +7866,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 6,
    "productCount": 2,
    "gapCount": 3,
-   "image": "/assets/brands/sheluna.jpeg",
+   "image": "/assets/brands/sheluna.webp",
    "profiles": [
     {
      "name": "SHELUNA",
@@ -8152,7 +8152,7 @@ window.RAY_KNOWLEDGE = {
    "slideCount": 21,
    "productCount": 13,
    "gapCount": 0,
-   "image": "/assets/brands/beautyscape.jpeg",
+   "image": "/assets/brands/beautyscape.webp",
    "profiles": [
     {
      "name": "BEAUTY SCAPE",
