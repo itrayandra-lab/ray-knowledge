@@ -239,7 +239,7 @@ button {
     rgba(249, 252, 255, 0.92),
     rgba(247, 250, 255, 0.72)
   );
-  backdrop-filter: blur(24px) saturate(140%);
+  backdrop-filter: blur(10px) saturate(140%);
 }
 .home-topbar {
   grid-template-columns: 1fr 1fr;
@@ -348,7 +348,7 @@ button {
   box-shadow:
     0 22px 55px rgba(35, 65, 128, 0.2),
     inset 0 1px 0 #fff;
-  backdrop-filter: blur(28px) saturate(160%);
+  backdrop-filter: blur(10px) saturate(160%);
 }
 .bottom-nav a {
   min-height: 58px;
@@ -1162,7 +1162,7 @@ button {
   padding: 16px var(--page-pad);
   border-bottom: 1px solid rgba(255, 255, 255, 0.8);
   background: rgba(245, 249, 255, 0.78);
-  backdrop-filter: blur(24px);
+  backdrop-filter: blur(10px);
 }
 .product-tabs button {
   flex: 1 1 0;
@@ -2194,7 +2194,7 @@ body {
 .topbar {
   background: rgba(255, 255, 255, 0.55);
   border-bottom: 1px solid rgba(120, 100, 200, 0.16);
-  backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(10px) saturate(180%);
 }
 .home-topbar {
   background: transparent;
@@ -2434,7 +2434,7 @@ body {
 /* === Bottom nav === */
 .bottom-nav {
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(10px) saturate(180%);
   border: 1px solid rgba(120, 100, 200, 0.15);
   box-shadow: 0 12px 32px rgba(120, 100, 200, 0.14);
 }
@@ -2729,7 +2729,7 @@ textarea:focus {
   position: absolute !important;
   inset: 0 !important;
   z-index: -1 !important;
-  background-image: url("/assets/brands/img/hero%20Science%20Behind%20Beauty.webp") !important;
+  background-image: url("/assets/brands/img/hero%20Science%20Behind%20Beauty.webp?v=20260929-heroface") !important;
   background-size: cover !important;
   background-position: center 38% !important;
   background-repeat: no-repeat !important;
@@ -3068,6 +3068,10 @@ textarea:focus {
 .home-brands-tiles {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 18px !important;
+}
+/* Category sections (Beautyscape, Inovasi) with a single brand: fill the row instead of leaving a gap */
+.brand-grid:has(> .brand-tile:only-child) > .brand-tile {
+  grid-column: 1 / -1 !important;
 }
 @media (max-width: 720px) {
   .brand-grid,
@@ -4059,7 +4063,7 @@ textarea:focus {
   padding: 16px var(--page-pad);
   border-bottom: 1px solid rgba(255, 255, 255, 0.8);
   background: rgba(245, 249, 255, 0.78);
-  backdrop-filter: blur(24px);
+  backdrop-filter: blur(10px);
   margin: 24px 17px 0;
 }
 .brand-tabs button {
