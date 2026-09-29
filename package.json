@@ -1,0 +1,12 @@
+{
+  "name": "ray-knowledge",
+  "version": "1.0.0",
+  "description": "RAY Product Knowledge - Static Site",
+  "scripts": {
+    "dev": "python serve.py 8765",
+    "build": "python scripts/build_catalog.py",
+    "test": "node scripts/validate_catalog.js",
+    "audit:render": "node scripts/audit_rendered_routes.js",
+    "serve": "python -m http.server 8765 --directory public"
+  }
+}

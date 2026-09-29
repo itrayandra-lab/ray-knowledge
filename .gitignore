@@ -11,6 +11,7 @@ __pycache__/
 # editor / OS
 .vscode/
 .idea/
+.claude/
 .DS_Store
 Thumbs.db
 *.swp
@@ -25,10 +26,19 @@ npm-debug.log*
 .env.*
 
 # lokal & server runtime
-_runtime/ tests_output/
+_runtime/
+tests_output/
 
-# dokumentasi (sumber PPT + extract, tidak di-push)
+# dokumentasi dan hasil ekstraksi lokal (tidak di-push)
 dokumentasi/
+_docx_images/
+extracted_pptx/
 
-# debug scripts
+# artefak debug sementara di root
+/_*.py
+/_*.txt
+/_*.js
+/temp_*.txt
+
+# debug scripts lain
 _test_runtime*.js

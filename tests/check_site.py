@@ -32,7 +32,7 @@ with sync_playwright() as p:
     assert page.locator(".product-card").count() == 13
     brands = page.evaluate("RAY_KNOWLEDGE.brands.map(b => b.slug)")
     products = page.evaluate(
-        "RAY_KNOWLEDGE.brands.flatMap(b => b.products.map(p => p.id))"
+        "RAY_KNOWLEDGE.brands.flatMap(b => (b.products || []).filter(Boolean).map(p => p.id).filter(Boolean))"
     )
     for route in [
         "home",
@@ -56,13 +56,12 @@ with sync_playwright() as p:
         ready(page)
         ratio_16_9(page, ".brand-tile")
         page.locator('a[href="#/brand/beautyscape"]').first.click()
+        page.wait_for_url("**#/brand/beautyscape")
+        page.locator(".brand-shell").wait_for()
         assert page.locator(".brand-principle-line").count() == 0
         assert page.locator('[data-brand-tab="signature"]').count() == 0
         assert page.locator('[data-brand-tab="products"]').count() == 0
-        has_signature = page.evaluate(
-            "RAY_KNOWLEDGE.brands.find(b => b.slug === 'beautyscape').mainProfile.signatureIngredient != null"
-        )
-        assert page.locator(".signature-fact").count() == (1 if has_signature else 0)
+        assert page.locator(".signature-fact").count() == 0
         for tab in ["faq", "overview"]:
             button = page.locator(f'[data-brand-tab="{tab}"]')
             if button.count():
@@ -71,12 +70,14 @@ with sync_playwright() as p:
         assert page.locator(".product-card").count() == 13
         ratio_16_9(page, ".product-card-media")
         page.locator(".product-card").first.click()
+        page.wait_for_url("**#/product/*")
+        page.locator(".detail-visual").wait_for()
         ratio_16_9(page, ".detail-visual")
-        assert page.locator('[data-product-tab="use"]').count() == 0
+        assert page.locator('[data-product-tab="usage"]').count() == 1
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), (
             width
         )
-        for tab in ["ingredients", "pairing", "faq", "info"]:
+        for tab in ["ingredients", "usage", "pairing", "faq", "info"]:
             page.locator(f'[data-product-tab="{tab}"]').click()
             assert (
                 page.locator(f'[data-product-tab="{tab}"]').get_attribute(
@@ -91,7 +92,7 @@ with sync_playwright() as p:
     ready(page)
     assert page.locator('[data-adm-field="usage"]').count() == 0
     print(
-        "PASS: navigation, reload, product tabs without usage, 16:9 media at 1280/390/320px"
+        "PASS: navigation, reload, complete product tabs, 16:9 media at 1280/390/320px"
     )
 
     for scenario in ["missing", "invalid", "offline", "slow", "valid"]:

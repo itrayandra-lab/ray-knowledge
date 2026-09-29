@@ -6,13 +6,52 @@
   if (!source || !app) return;
 
   const brands = source.brands || [];
+  function webpAssetPath(value) {
+    return String(value || "").replace(
+      /^(\/assets\/(?:brands|products|collaborators)\/.+)\.(?:jpe?g|png)([?#].*)?$/i,
+      "$1.webp$2",
+    );
+  }
+  brands.forEach((brand) => {
+    brand.image = webpAssetPath(brand.image);
+    (brand.products || []).forEach((product) => {
+      product.image = webpAssetPath(product.image);
+    });
+    const profiles = [brand.mainProfile, ...(brand.profiles || [])].filter(Boolean);
+    profiles.forEach((profile) => {
+      (profile.collaborators || []).forEach((collaborator) => {
+        collaborator.image = webpAssetPath(collaborator.image);
+      });
+    });
+  });
   const products = brands.flatMap((brand) =>
     (brand.products || []).map((product) => ({
       ...product,
       brandRecord: brand,
     })),
   );
-  const state = { productTab: "info", category: "all", brandTab: "overview" };
+  const state = {
+    productTab: "info",
+    category: "all",
+    brandTab: "overview",
+    homeBrandCat: "all",
+    productTextScale: Number(localStorage.getItem("ray-product-text-scale") || 1),
+  };
+  if (!Number.isFinite(state.productTextScale)) state.productTextScale = 1;
+  state.productTextScale = Math.min(1.3, Math.max(0.9, state.productTextScale));
+
+  // Global handler for home brand category filter (called from inline onclick)
+  window.homeFilterCat = function (cat) {
+    state.homeBrandCat = cat;
+    // Toggle active pill
+    document.querySelectorAll(".home-cat-filter .cat-pill").forEach((b) => {
+      b.classList.toggle("active", b.dataset.cat === cat);
+    });
+    // Toggle section visibility (matching brandsPage catFilter pattern)
+    document.querySelectorAll(".brand-section").forEach((s) => {
+      s.hidden = cat !== "all" && s.id !== cat;
+    });
+  };
 
   function esc(value) {
     return String(value == null ? "" : value)
@@ -79,13 +118,13 @@
   }
 
   function splitIngredient(raw) {
-    const text = clean(raw);
+    const text = clean(raw).replace(/\s[—–]\s/g, " : ");
     const parts = text.split(/\s(?:—|–|:)\s/);
     return {
       name: clean(parts.shift(), text).replace(/^[-•]\s*/, ""),
       detail: clean(
         parts.join(" — "),
-        "Digunakan dalam formula produk terkait.",
+        "",
       ),
     };
   }
@@ -99,16 +138,20 @@
     rawItems.forEach((raw) => {
       const parsed = splitIngredient(raw);
       if (!parsed.name) return;
+      const productDetail = (product.heroIngredientsDetail || []).find(
+        (item) => normalize(item.name) === normalize(parsed.name),
+      );
+      const description = clean(productDetail?.description || parsed.detail, "");
       const key = normalize(parsed.name);
       const current = ingredientMap.get(key) || {
         id: slugify(parsed.name),
         name: parsed.name,
-        description: parsed.detail,
+        description,
         products: [],
         hero: false,
       };
-      if (current.description.length < parsed.detail.length)
-        current.description = parsed.detail;
+      if (current.description.length < description.length)
+        current.description = description;
       if (!current.products.some((item) => item.id === product.id))
         current.products.push(product);
       current.hero =
@@ -190,7 +233,7 @@
       const edits = o.brands[b.slug];
       if (!edits) return;
       if (edits.title) b.title = edits.title;
-      if (edits.image) b.image = edits.image;
+      if (edits.image) b.image = webpAssetPath(edits.image);
       if (edits.profile) {
         const p = b.mainProfile || (b.mainProfile = {});
         Object.assign(p, edits.profile);
@@ -211,7 +254,7 @@
         "targetUsers",
         "image",
       ].forEach((k) => {
-        if (edits[k]) p[k] = edits[k];
+        if (edits[k]) p[k] = k === "image" ? webpAssetPath(edits[k]) : edits[k];
       });
       ["ingredients", "heroIngredients", "benefits", "pairing", "faq"].forEach(
         (k) => {
@@ -271,7 +314,7 @@
     const opts = options || {};
     if (opts.home) {
       return `<header class="topbar home-topbar">
-        <a class="ray-wordmark" href="#/home" aria-label="RAY Product Knowledge"><strong>RAY<sup>+</sup></strong><span>PRODUCT KNOWLEDGE</span></a>
+        <a class="ray-wordmark" href="#/home" aria-label="RAY Product Knowledge"><img src="/assets/logo-name-lunaray.png" alt="RAY" class="ray-wordmark-img" /></a>
         <div class="system-time"><strong data-clock>--:--</strong><span data-date>Knowledge hub</span></div>
       </header>`;
     }
@@ -279,9 +322,24 @@
       <button class="round-button" type="button" data-back aria-label="Kembali">${icon("back")}</button>
       <a class="screen-title" href="${opts.brandHref || "#/home"}">${esc(title || "RAY")}</a>
       <div class="top-actions">
-        <a class="round-button home-shortcut" href="#/home" aria-label="Ke beranda" title="Beranda">${icon("home")}</a>
+        ${opts.productTextControls ? productTextControls() : ""}
+        <a class="round-button home-shortcut" href="#/home" aria-label="Ke beranda" title="Home">${icon("home", 19)}</a>
       </div>
     </header>`;
+  }
+
+  function productTextControls() {
+    return `<div class="product-text-tools" aria-label="Ukuran teks produk">
+      <button type="button" data-product-font="-0.1" aria-label="Perkecil teks"><span aria-hidden="true">-</span></button>
+      <span class="sr-only" data-product-font-value>${Math.round(state.productTextScale * 100)}%</span>
+      <button type="button" data-product-font="0.1" aria-label="Perbesar teks"><span aria-hidden="true">+</span></button>
+    </div>`;
+  }
+
+  function productTextStyle() {
+    const scale = state.productTextScale;
+    const px = (value) => `${Number((value * scale).toFixed(2))}px`;
+    return `--product-body:${px(18)};--product-support:${px(17)};--product-small:${px(16)};--product-meta:${px(13)};--product-tab:${px(14)};`;
   }
 
   function bottomNav(active) {
@@ -291,7 +349,7 @@
 
   function shell(content, options) {
     const opts = options || {};
-    app.innerHTML = `<div class="app-shell ${opts.className || ""}" style="--accent:${hex(opts.accent, "#9ecbff")}">
+    app.innerHTML = `<div class="app-shell ${opts.className || ""}" style="--accent:${hex(opts.accent, "#9ecbff")};--product-text-scale:${state.productTextScale};${productTextStyle()}">
       ${topbar(opts.title, opts)}
       <main id="main-content" class="screen">${content}</main>
       ${bottomNav(opts.nav || "")}
@@ -302,28 +360,65 @@
 
   function brandCard(brand, index) {
     const profile = brand.mainProfile || {};
-    return `<a class="brand-tile reveal" href="${href("brand", brand.slug)}" style="--tile:${hex(profile.color)}">
-      <img src="${esc(brand.image)}" alt="Identitas visual ${esc(currentBrandName(brand))}" loading="lazy" width="1280" height="720">
+    return `<a class="brand-tile reveal" href="${href("brand", brand.slug)}" data-brand-slug="${brand.slug}" data-brand-cat="${esc(brand.brandCategory || "")}" style="--tile:${hex(profile.color)}">
+      <img src="${esc(webpAssetPath(brand.image))}" alt="Identitas visual ${esc(currentBrandName(brand))}" loading="lazy" width="1280" height="720">
       <span class="brand-tile-copy"><strong>${esc(currentBrandName(brand))}</strong><small>${esc(clean(profile.category, `${brand.products.length} produk`))}</small></span>
     </a>`;
   }
 
   function homePage() {
-    const featured = brands.slice(0, 3);
+    const collabSlugs = new Set([
+      "phytosync",
+      "mommylatory",
+      "baby-latory",
+      "sam-sun-and-moon",
+      "volubilis",
+      "dermalink",
+      "dermond",
+      "luecielliderm",
+      "eggshellent",
+      "alpha-shield",
+      "anara",
+      "aquera",
+      "coralyst",
+      "upglow-dai",
+    ]);
+    const internalSlugs = new Set([
+      "beautylatory",
+      "beautynature",
+      "adhwa",
+      "sheluna",
+    ]);
+    const beautyscapeSlug = "beautyscape";
+    const inovasiSlug = "inovasi";
+
+    const brandsByCat = (slugSet) => brands.filter((b) => slugSet.has(b.slug));
+    const collab = brandsByCat(collabSlugs);
+    const internal = brandsByCat(internalSlugs);
+    const beautyscape = brands.filter((b) => b.slug === beautyscapeSlug);
+    const inovasi = brands.filter((b) => b.slug === inovasiSlug);
+
+    const catPills = [
+      { id: "kolaborasi", label: "Brand Kolaborasi" },
+      { id: "internal", label: "Brand Internal" },
+      { id: "beautyscape", label: "Brand Beautyscape" },
+      { id: "inovasi", label: "Brand Inovasi" },
+    ];
+    const filterBtn = (id, label, isActive) =>
+      `<button class="cat-pill${isActive ? " active" : ""}" type="button" data-cat="${id}" onclick="homeFilterCat('${id}')">${label}</button>`;
     const content = `<section class="home-hero">
-      <div class="hero-orb orb-one"></div><div class="hero-orb orb-two"></div><div class="hero-ring"></div>
       <div class="hero-bg-image" aria-hidden="true"></div>
       <div class="hero-copy">
-        <span class="hero-kicker"><i></i> RAY BEAUTY SCIENCE</span>
-        <h1><span>SCIENCE</span><em>BEHIND</em><span>BEAUTY</span></h1>
-        <p>Knowledge today.<br>For a brighter tomorrow.</p>
+        <span class="hero-kicker"><i aria-hidden="true"></i>RAY KNOWLEDGE SYSTEM</span>
+        <h1><span class="h1-l1">SCIENCE</span><span class="h1-l2"><strong>BEHIND</strong><em>BEAUTY</em></span></h1>
+        <p>Knowledge today. For a brighter tomorrow.</p>
+        <div class="hero-stats"><span><strong>${brands.length}</strong><span>brand</span></span><span><strong>${products.length}</strong><span>produk</span></span><span><strong>${ingredients.length}</strong><span>bahan aktif</span></span></div>
+        <form class="hero-search" data-search-form>
+          ${icon("search", 21)}
+          <input type="search" name="q" autocomplete="off" placeholder="Cari di knowledge library" aria-label="Cari knowledge">
+          <button type="submit" aria-label="Mulai mencari">${icon("arrow", 18)}</button>
+        </form>
       </div>
-      <form class="hero-search" data-search-form>
-        ${icon("search", 25)}
-        <input type="search" name="q" autocomplete="off" placeholder="Cari produk, ingredients, atau brand…" aria-label="Cari knowledge">
-        <button type="submit" aria-label="Mulai mencari">${icon("arrow", 20)}</button>
-      </form>
-      <div class="hero-stats"><span><strong>${brands.length}</strong> brand</span><span><strong>${products.length}</strong> produk</span><span><strong>${ingredients.length}</strong> bahan aktif</span></div>
     </section>
     <section class="home-brands" aria-labelledby="home-brands-title">
       <div class="section-heading">
@@ -331,51 +426,150 @@
         <a href="#/brands">Lihat semua ${icon("arrow", 18)}</a>
       </div>
       <p class="section-lede">Jelajahi seluruh keluarga brand, positioning, rangkaian produk, dan bahan aktifnya.</p>
-      <div class="brand-grid">${brands.map(brandCard).join("")}</div>
-    </section>
-    <section class="source-note glass-panel"><span>${icon("info", 24)}</span><p><strong>Materi terjaga sesuai sumber.</strong> Informasi dirapikan dari arsip presentasi; klaim, formula, dan registrasi tetap mengikuti validasi internal.</p></section>`;
+      <div class="home-cat-filter" role="group" aria-label="Filter kategori brand">
+        ${filterBtn("all", "Semua", true)}${catPills.map((c) => filterBtn(c.id, c.label, false)).join("")}
+      </div>
+      <section class="brand-section" id="kolaborasi">
+        <div class="brand-grid">${collab.map((b, i) => brandCard(b, i)).join("")}</div>
+      </section>
+      <section class="brand-section" id="internal">
+        <div class="brand-grid">${internal.map((b, i) => brandCard(b, i)).join("")}</div>
+      </section>
+      <section class="brand-section" id="beautyscape">
+        <div class="brand-grid">${beautyscape.map((b, i) => brandCard(b, i)).join("")}</div>
+      </section>
+      <section class="brand-section" id="inovasi">
+        <div class="brand-grid">${inovasi.map((b, i) => brandCard(b, i)).join("")}</div>
+      </section>
+    </section>`;
     shell(content, { home: true, nav: "home", className: "home-shell" });
   }
 
   function brandsPage() {
+    const collabSlugs = new Set([
+      "phytosync",
+      "mommylatory",
+      "baby-latory",
+      "sam-sun-and-moon",
+      "volubilis",
+      "dermalink",
+      "dermond",
+      "luecielliderm",
+      "eggshellent",
+      "alpha-shield",
+      "anara",
+      "aquera",
+      "coralyst",
+      "upglow-dai",
+    ]);
+    const internalSlugs = new Set([
+      "beautylatory",
+      "beautynature",
+      "adhwa",
+      "sheluna",
+    ]);
+    const beautyscapeSlug = "beautyscape";
+    const inovasiSlug = "inovasi";
+
+    const brandsBySection = (slugSet) =>
+      brands.filter((b) => slugSet.has(b.slug));
+    const collab = brandsBySection(collabSlugs);
+    const internal = brandsBySection(internalSlugs);
+    const beautyscape = brands.filter((b) => b.slug === beautyscapeSlug);
+    const inovasi = brands.filter((b) => b.slug === inovasiSlug);
+
+    const catPills = [
+      { id: "kolaborasi", label: "Brand Kolaborasi" },
+      { id: "internal", label: "Brand Internal" },
+      { id: "beautyscape", label: "Brand Beautyscape" },
+      { id: "inovasi", label: "Brand Inovasi" },
+    ];
+
     const content = `<section class="page-intro compact">
       <span class="section-kicker">BRAND DIRECTORY</span>
       <h1>Semua brand.<br><em>Satu knowledge hub.</em></h1>
-      <p>Temukan ${brands.length} brand dan ${products.length} produk berdasarkan materi sumber yang telah dirapikan.</p>
+      <p>Temukan ${brands.length} brand dan ${products.length} produk.</p>
       <label class="inline-search">${icon("search", 21)}<input type="search" placeholder="Filter nama atau kategori brand…" data-brand-filter></label>
+      <div class="cat-filter" role="group" aria-label="Filter kategori brand">
+        <button class="cat-pill active" type="button" data-cat="all">Semua</button>
+        ${catPills.map((c) => `<button class="cat-pill" type="button" data-cat="${c.id}">${c.label}</button>`).join("")}
+      </div>
     </section>
-    <section class="catalog-section"><div class="brand-grid" data-brand-grid>${brands.map(brandCard).join("")}</div><div class="empty-state" data-empty hidden>Brand tidak ditemukan.</div></section>`;
+    <section class="catalog-section" id="kolaborasi">
+      <div class="section-heading"><div><span class="section-kicker">KOLABORASI</span><h2>Brand dengan Kolaborasi Ilmiah</h2></div></div>
+      <div class="brand-grid">${collab.map((b, i) => brandCard(b, i)).join("")}</div>
+    </section>
+    <section class="catalog-section" id="internal">
+      <div class="section-heading"><div><span class="section-kicker">INTERNAL</span><h2>Brand Utama & Distribusi</h2></div></div>
+      <div class="brand-grid">${internal.map((b, i) => brandCard(b, i)).join("")}</div>
+    </section>
+    <section class="catalog-section" id="beautyscape">
+      <div class="section-heading"><div><span class="section-kicker">BEAUTYSCAPE</span><h2>Brand Distribusi & Retail</h2></div></div>
+      <div class="brand-grid">${beautyscape.map((b, i) => brandCard(b, i)).join("")}</div>
+    </section>
+    <section class="catalog-section" id="inovasi">
+      <div class="section-heading"><div><span class="section-kicker">INOVASI</span><h2>Beauty Innovation Showcase 2026</h2></div></div>
+      <div class="brand-grid">${inovasi.map((b, i) => brandCard(b, i)).join("")}</div>
+    </section>`;
+
     shell(content, { title: "Brand Directory", nav: "brands" });
+
     const input = document.querySelector("[data-brand-filter]");
-    input &&
+    if (input) {
       input.addEventListener("input", () => {
         const q = normalize(input.value);
-        let visible = 0;
-        document.querySelectorAll(".brand-tile").forEach((card, index) => {
-          const brand = brands[index];
-          const profile = brand.mainProfile || {};
-          const show = normalize(
-            [
-              brand.title,
-              profile.name,
-              profile.category,
-              profile.searchTags,
-              profile.shortDescription,
-            ].join(" "),
-          ).includes(q);
-          card.hidden = !show;
-          visible += show ? 1 : 0;
+        document
+          .querySelectorAll(".brand-tile[data-brand-slug]")
+          .forEach((card) => {
+            const slug = card.dataset.brandSlug;
+            const brand = brands.find((b) => b.slug === slug);
+            if (!brand) {
+              card.hidden = true;
+              return;
+            }
+            const profile = brand.mainProfile || {};
+            const haystack = normalize(
+              [
+                brand.title,
+                profile.name,
+                profile.category,
+                profile.searchTags,
+                profile.shortDescription,
+              ].join(" "),
+            );
+            card.hidden = q && !haystack.includes(q);
+          });
+        document.querySelectorAll(".catalog-section").forEach((section) => {
+          const visible = section.querySelectorAll(
+            ".brand-tile:not([hidden])",
+          ).length;
+          const empty = section.querySelector("[data-empty]");
+          if (empty) empty.hidden = visible > 0;
         });
-        document.querySelector("[data-empty]").hidden = visible > 0;
       });
+    }
+
+    document.querySelectorAll(".cat-pill").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const cat = btn.dataset.cat;
+        document
+          .querySelectorAll(".cat-pill")
+          .forEach((b) => b.classList.toggle("active", b === btn));
+        document
+          .querySelectorAll(".catalog-section")
+          .forEach((s) => (s.hidden = cat !== "all" && s.id !== cat));
+      });
+    });
   }
 
   function productCard(product, index) {
     const brand = product.brandRecord;
+    const imgSrc = webpAssetPath(product.image || brand.image);
+    const isProductImg = !!product.image;
     return `<a class="product-card" href="${href("product", product.id)}" data-category="${esc(normalize(product.category || "lainnya"))}">
       <div class="product-card-media">
-        <img src="${esc(brand.image)}" alt="Visual brand untuk ${esc(product.name)}" loading="lazy" width="1280" height="720">
-        <span class="visual-label">Visual brand</span>
+        <img src="${esc(imgSrc)}" alt="Visual ${esc(product.name)}" loading="lazy" width="1280" height="720">
+        <span class="visual-label">${isProductImg ? "Foto produk" : "Visual brand"}</span>
         <span class="product-number">${String(index + 1).padStart(2, "0")}</span>
       </div>
       <div class="product-card-copy"><span>${esc(clean(product.category, "Produk"))}</span><h3>${esc(product.name)}</h3><p>${esc(clean(product.cardCopy || product.tagline, "Buka product knowledge lengkap."))}</p></div>
@@ -390,12 +584,6 @@
     const categories = [
       ...new Set(brand.products.map((item) => clean(item.category, "Lainnya"))),
     ].sort();
-    const facts = [
-      ["Fokus", clean(profile.principle, profile.category)],
-      ["Target", clean(profile.targetAudience, profile.targetUsers)],
-      ["Hero ingredient", profile.heroIngredient],
-    ].filter((item) => item[1]);
-
     // Build tab list — only show Kolaborasi if collaborators exist
     const collaborators = (profile && profile.collaborators) || [];
     const faqs = profile.faq || [];
@@ -408,7 +596,7 @@
       : "overview";
     state.brandTab = activeTab;
 
-    const tabsHtml = `<nav class="brand-tabs" aria-label="Brand sections">${tabItems
+    const tabsHtml = `<nav class="brand-tabs" style="--brand-tabs-count:${tabItems.length}" aria-label="Brand sections">${tabItems
       .map(
         ([key, sym, label]) =>
           `<button class="${activeTab === key ? "active" : ""}" type="button" data-brand-tab="${key}" aria-pressed="${activeTab === key}">${icon(sym, 20)}<span>${label}</span></button>`,
@@ -416,38 +604,25 @@
       .join("")}</nav>`;
 
     // Overview section
-    const overviewHtml = `<section class="brand-tab-pane" data-brand-pane="overview">
+    const overviewHtml = `<section class="brand-tab-pane" data-brand-pane="overview"${activeTab !== "overview" ? " hidden" : ""}>
       <div class="brand-overview glass-panel">
         <div><span class="section-kicker">BRAND OVERVIEW</span><h2>Identitas dan arah brand.</h2>${paragraphs(profile.longDescription || profile.shortDescription)}</div>
-        <div class="fact-stack">${facts.map(([label, value]) => `<article><span>${esc(label)}</span><p>${esc(value)}</p></article>`).join("")}</div>
       </div>
-      ${
-        profile.signatureIngredient
-          ? `<section class="brand-signature glass-panel signature-fact">
-        <div class="sig-art"><span>${icon("molecule", 38)}</span><i></i></div>
-        <div class="sig-body">
-          <span class="section-kicker">SIGNATURE INGREDIENT</span>
-          <h2>${esc(profile.signatureIngredient.name || "")}</h2>
-          <p>${esc(profile.signatureIngredient.description || "")}</p>
-        </div>
-      </section>`
-          : ""
-      }
     </section>`;
 
     // Collaboration section (only if data exists)
     let collabHtml = "";
     if (collaborators.length) {
-      collabHtml = `<section class="brand-tab-pane" data-brand-pane="collab">
+      collabHtml = `<section class="brand-tab-pane" data-brand-pane="collab"${activeTab !== "collab" ? " hidden" : ""}>
         <div class="collab-head">
           <span class="section-kicker">COLLABORATION</span>
           <h2>Kolaborasi ${esc(currentBrandName(brand))}</h2>
-          <p>Dirancang bersama tenaga profesional untuk memastikan keamanan, kemanjuran, dan kualitas formula sesuai standar.</p>
+          <p>Kolaborator profesional yang tercantum dalam materi brand.</p>
         </div>
         <div class="collab-grid">${collaborators
           .map(
             (c) => `<article class="collab-card">
-              <div class="collab-photo"><img src="${esc(c.image || "/assets/collaborators/placeholder-1.svg")}" alt="Foto ${esc(c.name)}" loading="lazy" width="400" height="500"></div>
+              <div class="collab-photo"><img src="${esc(webpAssetPath(c.image || brand.image))}" alt="Foto ${esc(c.name)}" loading="lazy" width="400" height="500"></div>
               <div class="collab-meta">
                 <strong>${esc(c.name)}</strong>
                 <small>${esc(c.role || "Collaboration Partner")}</small>
@@ -461,7 +636,7 @@
     // FAQ section (only if data exists)
     let faqHtml = "";
     if (faqs.length) {
-      faqHtml = `<section class="brand-tab-pane" data-brand-pane="faq">
+      faqHtml = `<section class="brand-tab-pane" data-brand-pane="faq"${activeTab !== "faq" ? " hidden" : ""}>
         <div class="brand-faq-head">
           <span class="section-kicker">FAQ BRAND</span>
           <h2>Pertanyaan tentang ${esc(currentBrandName(brand))}</h2>
@@ -487,7 +662,7 @@
       ${brand.gaps && brand.gaps.length ? `<details class="validation-note"><summary>${icon("info", 19)} Catatan kelengkapan materi</summary><ul>${brand.gaps.map((gap) => `<li>${esc(gap)}</li>`).join("")}</ul></details>` : ""}`;
 
     const content = `<section class="brand-hero">
-      <img src="${esc(brand.image)}" alt="Identitas visual ${esc(currentBrandName(brand))}" width="1280" height="720">
+      <img src="${esc(webpAssetPath(brand.image))}" alt="Identitas visual ${esc(currentBrandName(brand))}" width="1280" height="720">
       <div class="brand-hero-wash"></div>
       <div class="brand-hero-copy"><span>${esc(clean(profile.category, "RAY brand"))}</span><h1>${esc(currentBrandName(brand))}</h1><p>${esc(clean(profile.subheadline || profile.shortDescription, `${brand.products.length} produk dalam knowledge library.`))}</p></div>
       <div class="brand-hero-count"><strong>${brand.products.length}</strong><span>produk</span></div>
@@ -558,10 +733,11 @@
   function productTabs(product) {
     const items = [
       ["info", "book", "Info Produk"],
-      ["ingredients", "molecule", "Bahan Aktif"],
-      ["pairing", "layers", "Pendamping"],
-      ["faq", "question", "FAQ"],
     ];
+    if ((product.ingredients || []).length || (product.heroIngredients || []).length)
+      items.push(["ingredients", "molecule", "Bahan Aktif"]);
+    if ((product.usage || []).length) items.push(["usage", "use", "Cara Pakai"]);
+    items.push(["pairing", "layers", "Produk Lain"], ["faq", "question", "FAQ"]);
     return `<nav class="product-tabs" aria-label="Bagian product knowledge">${items
       .map(
         ([key, symbol, label]) =>
@@ -573,12 +749,10 @@
   function productVisual(product) {
     const brand = product.brandRecord;
     // Use product's uploaded image if available, otherwise brand visual
-    const imgSrc = product.image || brand.image;
+    const imgSrc = webpAssetPath(product.image || brand.image);
     const isProduct = !!product.image;
     return `<figure class="detail-visual">
-      <img src="${esc(imgSrc)}" alt="Visual ${esc(product.name)}" width="1280" height="720">
-      <div class="detail-visual-label"><span>${isProduct ? "Foto Produk" : "Visual Brand"}</span><strong>${esc(product.name)}</strong></div>
-      ${!isProduct ? `<figcaption>Foto produk individual belum tersedia di arsip; visual brand digunakan agar tidak menampilkan kemasan yang keliru.</figcaption>` : ""}
+      <img src="${esc(imgSrc)}" alt="${esc(product.name)}" width="1280" height="720">
     </figure>`;
   }
 
@@ -589,7 +763,7 @@
       <div class="product-info-copy">
         <span class="section-kicker">${esc(clean(product.brand, currentBrandName(product.brandRecord)))}</span>
         <h1>${esc(product.name)}</h1>
-        <p class="product-tagline">${esc(clean(product.tagline || product.cardCopy, product.category))}</p>
+        ${product.tagline ? `<p class="product-tagline">${esc(product.tagline)}</p>` : ""}
         <div class="chip-row">${[product.category, product.size, product.code]
           .filter(Boolean)
           .map((item) => `<span>${esc(item)}</span>`)
@@ -609,15 +783,18 @@
       ]),
     ];
     if (!values.length)
-      return `<div class="empty-state panel-empty">Data bahan aktif belum tercantum pada materi sumber.</div>`;
-    return `<section class="tab-section"><div class="tab-heading"><span class="section-kicker">FORMULA KNOWLEDGE</span><h1>Hero Ingredients</h1><p>Bahan yang tercantum dalam materi sumber untuk produk ini.</p></div>
+      return `<div class="empty-state panel-empty">Informasi bahan aktif belum tersedia untuk produk ini.</div>`;
+    return `<section class="tab-section"><div class="tab-heading"><span class="section-kicker">FORMULA KNOWLEDGE</span><h1>Hero Ingredients</h1><p>Bahan aktif utama dalam formula produk ini.</p></div>
       <div class="ingredient-grid">${values
         .map((raw, index) => {
           const parsed = splitIngredient(raw);
           const record = ingredientMap.get(normalize(parsed.name));
+          const detail = (product.heroIngredientsDetail || []).find(
+            (item) => normalize(item.name) === normalize(parsed.name),
+          );
           return `<a class="ingredient-card" href="${href("ingredient", record ? record.id : slugify(parsed.name))}">
           <div class="ingredient-art art-${index % 3}"><span>${icon("molecule", 36)}</span><i></i></div>
-          <div><span class="ingredient-no">0${index + 1}</span><h2>${esc(parsed.name)}</h2><p>${esc(parsed.detail)}</p><span class="learn-link">Pelajari ${icon("arrow", 16)}</span></div>
+          <div><span class="ingredient-no">0${index + 1}</span><h2>${esc(parsed.name)}</h2>${detail?.description || parsed.detail ? `<p>${esc(detail?.description || parsed.detail)}</p>` : ""}${detail?.concentration ? `<div class="ingredient-meta"><span>${esc(detail.concentration)}</span>${detail.function ? `<span>${esc(detail.function)}</span>` : ""}</div>` : ""}<span class="learn-link">Pelajari ${icon("arrow", 16)}</span></div>
         </a>`;
         })
         .join("")}</div></section>`;
@@ -634,8 +811,17 @@
   }
 
   function productUse(product) {
-    // Deprecated: Cara Pakai tab removed. Kept as no-op for backward compat.
-    return `<div class="empty-state panel-empty" hidden></div>`;
+    const steps = Array.isArray(product.usage)
+      ? product.usage.filter(Boolean)
+      : usageSteps(product.usage);
+    return `<section class="tab-section usage-section"><div class="tab-heading"><span class="section-kicker">USAGE &amp; CARE</span><h1>Cara Pakai</h1><p>Ikuti urutan pemakaian dan catatan perawatan produk berikut.</p></div>
+      ${steps.length ? `<ol class="usage-list">${steps.map((step, index) => `<li><span>${String(index + 1).padStart(2, "0")}</span><p>${esc(step)}</p></li>`).join("")}</ol>` : `<div class="empty-state panel-empty">Panduan penggunaan belum tersedia untuk produk ini.</div>`}
+      <div class="care-grid">
+        ${product.safety ? `<article><h2>Keamanan</h2><p>${esc(product.safety)}</p></article>` : ""}
+        ${product.storage ? `<article><h2>Penyimpanan</h2><p>${esc(product.storage)}</p>${product.storageExtra ? `<small>${esc(product.storageExtra)}</small>` : ""}</article>` : ""}
+        ${product.avoid ? `<article><h2>Perhatian</h2><p>${esc(product.avoid)}</p></article>` : ""}
+      </div>
+    </section>`;
   }
 
   function relatedProducts(product) {
@@ -662,14 +848,13 @@
 
   function productPairing(product) {
     const related = relatedProducts(product);
-    return `<section class="tab-section"><div class="tab-heading"><span class="section-kicker">RELATED KNOWLEDGE</span><h1>Produk Pendamping</h1><p>Produk terkait berdasarkan brand dan kesamaan bahan dalam katalog.</p></div>
+    return `<section class="tab-section"><div class="tab-heading"><span class="section-kicker">RELATED KNOWLEDGE</span><h1>Produk Lain</h1><p>Produk terkait berdasarkan brand dan kesamaan bahan dalam katalog.</p></div>
       <aside class="source-caution">${icon("info", 20)} <p>Bagian ini adalah relasi knowledge, bukan klaim kompatibilitas formula. Ikuti arahan R&amp;D atau Regulatory untuk pairing resmi.</p></aside>
-      ${related.length ? `<div class="related-grid">${related.map((item, index) => productCard(item, index)).join("")}</div>` : `<div class="empty-state panel-empty">Belum ada produk terkait yang cukup kuat di dalam materi.</div>`}
+      ${related.length ? `<div class="related-grid">${related.map((item, index) => productCard(item, index)).join("")}</div>` : `<div class="empty-state panel-empty">Produk terkait belum tersedia.</div>`}
     </section>`;
   }
 
   function productFaq(product) {
-    const profile = product.brandRecord.mainProfile || {};
     const grounded = [];
     if (product.targetUsers)
       grounded.push({
@@ -679,27 +864,50 @@
     if (product.usage)
       grounded.push({
         question: `Bagaimana cara menggunakan ${product.name}?`,
-        answer: product.usage,
+        answer: Array.isArray(product.usage)
+          ? product.usage.join(" ")
+          : product.usage,
       });
     if ((product.benefits || []).length)
       grounded.push({
         question: "Apa manfaat utamanya?",
         answer: product.benefits.join("; ") + ".",
       });
-    const items = [...grounded, ...(profile.faq || []).slice(0, 3)];
-    return `<section class="tab-section faq-tab"><div class="tab-heading"><span class="section-kicker">QUICK ANSWERS</span><h1>FAQ</h1><p>Jawaban diringkas dari materi produk dan brand.</p></div>
-      ${items.length ? `<div class="accordion">${items.map((item, index) => `<details ${index === 0 ? "open" : ""}><summary>${esc(item.question)}<span>+</span></summary><p>${esc(item.answer)}</p></details>`).join("")}</div>` : `<div class="empty-state panel-empty">FAQ belum tersedia pada materi sumber.</div>`}
+    const candidates = [
+      ...grounded,
+      ...(product.faq || []),
+    ];
+    const seen = new Set();
+    const items = candidates.filter((item) => {
+      const key = normalize(item.question);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return `<section class="tab-section faq-tab"><div class="tab-heading"><span class="section-kicker">QUICK ANSWERS</span><h1>FAQ</h1><p>Jawaban ringkas seputar produk dan brand.</p></div>
+      ${items.length ? `<div class="accordion">${items.map((item, index) => `<details ${index === 0 ? "open" : ""}><summary>${esc(item.question)}<span>+</span></summary><p>${esc(item.answer)}</p></details>`).join("")}</div>` : `<div class="empty-state panel-empty">FAQ produk belum tersedia.</div>`}
     </section>`;
   }
 
   function productPage(id) {
-    const product = products.find((item) => item.id === id);
+    const product =
+      products.find((item) => item.id === id) ||
+      products.find((item) => {
+        const brandSlug = item.brandRecord && item.brandRecord.slug;
+        return brandSlug && `${brandSlug}-${item.id}` === id;
+      });
     if (!product) return notFound();
     const brand = product.brandRecord;
+    if (
+      state.productTab === "ingredients" &&
+      !(product.ingredients || []).length &&
+      !(product.heroIngredients || []).length
+    ) state.productTab = "info";
     const renderTab =
       {
         info: productInfo,
         ingredients: productIngredients,
+        usage: productUse,
         pairing: productPairing,
         faq: productFaq,
       }[state.productTab] || productInfo;
@@ -709,6 +917,7 @@
       accent: brand.mainProfile && brand.mainProfile.color,
       favorite: `product:${product.id}`,
       share: true,
+      productTextControls: true,
       brandHref: href("brand", brand.slug),
       nav: "brands",
       className: "product-shell",
@@ -727,7 +936,7 @@
     if (!ingredient) return notFound();
     const content = `<section class="ingredient-detail-hero">
       <div class="ingredient-hero-art"><span>${icon("molecule", 64)}</span><i></i><b></b></div>
-      <div><span class="section-kicker">INGREDIENT LIBRARY</span><h1>${esc(ingredient.name)}</h1><p>${esc(ingredient.description)}</p><div class="chip-row"><span>${ingredient.products.length} produk terkait</span>${ingredient.hero ? "<span>Hero ingredient</span>" : ""}</div></div>
+      <div><span class="section-kicker">INGREDIENT LIBRARY</span><h1>${esc(ingredient.name)}</h1>${ingredient.description ? `<p>${esc(ingredient.description)}</p>` : ""}<div class="chip-row"><span>${ingredient.products.length} produk terkait</span>${ingredient.hero ? "<span>Hero ingredient</span>" : ""}</div></div>
     </section>
     <section class="tab-section"><div class="section-heading"><div><span class="section-kicker">FOUND IN</span><h2>Produk Terkait</h2></div></div><div class="product-grid">${ingredient.products.map((item, index) => productCard(item, index)).join("")}</div></section>`;
     shell(content, {
@@ -888,6 +1097,29 @@
         } catch (_) {
           /* share was dismissed */
         }
+      }),
+    );
+    document.querySelectorAll("[data-product-font]").forEach((button) =>
+      button.addEventListener("click", () => {
+        const delta = Number(button.dataset.productFont || 0);
+        state.productTextScale = Math.min(
+          1.3,
+          Math.max(0.9, Number((state.productTextScale + delta).toFixed(2))),
+        );
+        localStorage.setItem("ray-product-text-scale", state.productTextScale);
+        const shell = document.querySelector(".product-shell");
+        if (shell) {
+          shell.style.setProperty("--product-text-scale", state.productTextScale);
+          const scale = state.productTextScale;
+          shell.style.setProperty("--product-body", `${Number((18 * scale).toFixed(2))}px`);
+          shell.style.setProperty("--product-support", `${Number((17 * scale).toFixed(2))}px`);
+          shell.style.setProperty("--product-small", `${Number((16 * scale).toFixed(2))}px`);
+          shell.style.setProperty("--product-meta", `${Number((13 * scale).toFixed(2))}px`);
+          shell.style.setProperty("--product-tab", `${Number((14 * scale).toFixed(2))}px`);
+        }
+        document.querySelectorAll("[data-product-font-value]").forEach((label) => {
+          label.textContent = `${Math.round(state.productTextScale * 100)}%`;
+        });
       }),
     );
     document.querySelectorAll("[data-search-form]").forEach((form) =>
@@ -1214,7 +1446,7 @@
     existing.forEach(function (c, i) {
       var name = (c && c.name) || "";
       var role = (c && c.role) || "";
-      var img = (c && c.image) || "";
+      var img = webpAssetPath((c && c.image) || "");
       html +=
         '<div class="adm-collab-item" data-collab-idx="' +
         i +
@@ -1313,7 +1545,7 @@
       var sigIng =
         (edits.profile && edits.profile.signatureIngredient) ||
         p.signatureIngredient;
-      var imageSrc = edits.image || b.image || "";
+      var imageSrc = webpAssetPath(edits.image || b.image || "");
 
       target.innerHTML = `
         <div class="adm-section-head">
@@ -1724,7 +1956,7 @@
       }
       var overrides = loadAdminOverrides();
       var edits = overrides.products[p.id] || {};
-      var imageSrc = edits.image || p.image || "";
+      var imageSrc = webpAssetPath(edits.image || p.image || "");
       var faq = edits.faq || p.faq || [];
 
       target.innerHTML = `
