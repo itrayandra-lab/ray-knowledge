@@ -399,10 +399,10 @@
     const inovasi = brands.filter((b) => b.slug === inovasiSlug);
 
     const catPills = [
-      { id: "kolaborasi", label: "Brand Kolaborasi" },
-      { id: "internal", label: "Brand Internal" },
-      { id: "beautyscape", label: "Brand Beautyscape" },
-      { id: "inovasi", label: "Brand Inovasi" },
+      { id: "kolaborasi", label: "Kolaborasi" },
+      { id: "internal", label: "Internal" },
+      { id: "beautyscape", label: "Beautyscape" },
+      { id: "inovasi", label: "Inovasi" },
     ];
     const filterBtn = (id, label, isActive) =>
       `<button class="cat-pill${isActive ? " active" : ""}" type="button" data-cat="${id}" onclick="homeFilterCat('${id}')">${label}</button>`;
@@ -422,7 +422,7 @@
     </section>
     <section class="home-brands" aria-labelledby="home-brands-title">
       <div class="section-heading">
-        <div><span class="section-kicker">KNOWLEDGE LIBRARY</span><h2 id="home-brands-title">Our Brands</h2></div>
+        <div><span class="section-kicker">KNOWLEDGE LIBRARY</span><h2 id="home-brands-title">The Products</h2></div>
         <a href="#/brands">Lihat semua ${icon("arrow", 18)}</a>
       </div>
       <p class="section-lede">Jelajahi seluruh keluarga brand, positioning, rangkaian produk, dan bahan aktifnya.</p>
@@ -714,12 +714,54 @@
     }
   }
 
+  function splitMarkdownTableRows(value) {
+    return String(value || "")
+      .trim()
+      .replace(/\r\n?/g, "\n")
+      .replace(/\|\s+\|/g, "|\n|")
+      .split(/\n+/)
+      .map((row) => row.trim())
+      .filter((row) => row.startsWith("|") && row.endsWith("|"));
+  }
+
+  function tableCells(row) {
+    return row
+      .replace(/^\|/, "")
+      .replace(/\|$/, "")
+      .split("|")
+      .map((cell) => cell.trim());
+  }
+
+  function isMarkdownTableSeparator(row) {
+    const cells = tableCells(row);
+    return cells.length > 1 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+  }
+
+  function markdownTable(value) {
+    const rows = splitMarkdownTableRows(value);
+    const separatorIndex = rows.findIndex(isMarkdownTableSeparator);
+    if (separatorIndex < 1) return "";
+
+    const headers = tableCells(rows[separatorIndex - 1]);
+    const bodyRows = rows
+      .slice(separatorIndex + 1)
+      .map(tableCells)
+      .filter((cells) => cells.length === headers.length);
+    if (!headers.length || !bodyRows.length) return "";
+
+    return `<div class="rich-table-wrap"><table class="rich-table"><thead><tr>${headers
+      .map((cell) => `<th>${esc(cell)}</th>`)
+      .join("")}</tr></thead><tbody>${bodyRows
+      .map((cells) => `<tr>${cells.map((cell) => `<td>${esc(cell)}</td>`).join("")}</tr>`)
+      .join("")}</tbody></table></div>`;
+  }
+
   function paragraphs(value) {
     return String(value || "")
       .split(/\n\n+/)
       .map((part) => part.trim())
       .filter(Boolean)
-      .map((part) => `<p>${esc(part)}</p>`)
+      .map((part) => markdownTable(part) || `<p>${esc(part)}</p>`)
       .join("");
   }
 

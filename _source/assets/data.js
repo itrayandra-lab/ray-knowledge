@@ -4085,7 +4085,7 @@ window.RAY_KNOWLEDGE = {
         },
         {
           "id": "lumibiome-radiance-duo",
-          "image": "/assets/brands/beautylatory.webp",
+          "image": "/assets/products/Lumibiome Radiance Duo (BEAUTYLATORY).webp",
           "name": "Lumibiome Radiance Duo",
           "code": "Phytosync HY-01",
           "size": "Lumibiome Tone-Up Cream: 15 g / Lumibiome Glow-Up Serum: 15 g",
@@ -4130,7 +4130,7 @@ window.RAY_KNOWLEDGE = {
           ],
           "slideReference": "",
           "slideReferences": [],
-          "sourceImagePath": "assets/brands/beautylatory.webp",
+          "sourceImagePath": "assets/products/Lumibiome Radiance Duo (BEAUTYLATORY).webp",
           "brand": "BEAUTYLATORY",
           "reportSlug": "beautylatory",
           "packageInfo": {
@@ -10645,7 +10645,7 @@ window.RAY_KNOWLEDGE = {
         },
         {
           "id": "hydracalm-facial-toner",
-          "image": "/assets/products/HydraCalm Facial Toner (UPGLOW DIA Series).webp",
+          "image": "/assets/products/HydraCalm Facial Toner (UPGLOW).webp",
           "name": "HydraCalm Facial Toner",
           "code": "",
           "size": "",
@@ -10682,7 +10682,7 @@ window.RAY_KNOWLEDGE = {
           ],
           "slideReference": "",
           "slideReferences": [],
-          "sourceImagePath": "assets/products/HydraCalm Facial Toner (UPGLOW DIA Series).webp",
+          "sourceImagePath": "assets/products/HydraCalm Facial Toner (UPGLOW).webp",
           "brand": "UPGLOW",
           "reportSlug": "upglow-dai",
           "packageInfo": {
@@ -10736,7 +10736,7 @@ window.RAY_KNOWLEDGE = {
         },
         {
           "id": "hydracalm-facial-wash",
-          "image": "/assets/products/HydraCalm Facial Wash (UPGLOW DIA Series).webp",
+          "image": "/assets/products/HydraCalm Facial Wash (UPGLOW).webp",
           "name": "HydraCalm Facial Wash",
           "code": "",
           "size": "",
@@ -10774,7 +10774,7 @@ window.RAY_KNOWLEDGE = {
           ],
           "slideReference": "",
           "slideReferences": [],
-          "sourceImagePath": "assets/products/HydraCalm Facial Wash (UPGLOW DIA Series).webp",
+          "sourceImagePath": "assets/products/HydraCalm Facial Wash (UPGLOW).webp",
           "brand": "UPGLOW",
           "reportSlug": "upglow-dai",
           "packageInfo": {
@@ -10834,7 +10834,7 @@ window.RAY_KNOWLEDGE = {
         },
         {
           "id": "prebiolift-hydrating-serum-spray",
-          "image": "/assets/products/PrebioLift Hydrating Serum Spray (UPGLOW DIA Series).webp",
+          "image": "/assets/products/PrebioLift Hydrating Serum Spray (UPGLOW).webp",
           "name": "PrebioLift Hydrating Serum Spray",
           "code": "",
           "size": "",
@@ -10872,7 +10872,7 @@ window.RAY_KNOWLEDGE = {
           ],
           "slideReference": "",
           "slideReferences": [],
-          "sourceImagePath": "assets/products/PrebioLift Hydrating Serum Spray (UPGLOW DIA Series).webp",
+          "sourceImagePath": "assets/products/PrebioLift Hydrating Serum Spray (UPGLOW).webp",
           "brand": "UPGLOW",
           "reportSlug": "upglow-dai",
           "packageInfo": {

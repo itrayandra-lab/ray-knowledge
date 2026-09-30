@@ -70,7 +70,7 @@ SOURCE_NAME_ALIASES = {
 
 ASSET_ALIASES = {
     ("BEAUTYLATORY", "Lumibiome Radiance Duo"):
-        "/assets/brands/beautylatory.webp",
+        "/assets/products/Lumibiome Radiance Duo (BEAUTYLATORY).webp",
     ("INOVASI", "Scalp Care Hair Tonic"):
         "/assets/products/Hair Tonic (INOVASI).webp",
     ("INOVASI", "Phyto PDRN Bubble Serum"):
@@ -1004,11 +1004,15 @@ def product_image(brand: str, name: str) -> str:
         score = SequenceMatcher(None, wanted, stem_key).ratio()
         if wanted in stem_key or stem_key in wanted:
             score += 0.25
-        candidates.append((score, path))
-    candidates.sort(key=lambda row: row[0], reverse=True)
+        if suffix == brand_key:
+            score += 0.2
+        elif suffix:
+            score += 0.08
+        candidates.append((score, path.stat().st_mtime, path))
+    candidates.sort(key=lambda row: (row[0], row[1]), reverse=True)
     if not candidates or candidates[0][0] < 0.72:
         raise ValueError(f"No product image match for {brand} / {name}")
-    return "/assets/products/" + candidates[0][1].name
+    return "/assets/products/" + candidates[0][2].name
 
 
 def build_product(
